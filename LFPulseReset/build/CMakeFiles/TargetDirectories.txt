@@ -1,0 +1,3 @@
+/Users/spluta/Documents/SC/SuperColliderBuild/LFPulseReset/build/CMakeFiles/rebuild_cache.dir
+/Users/spluta/Documents/SC/SuperColliderBuild/LFPulseReset/build/CMakeFiles/edit_cache.dir
+/Users/spluta/Documents/SC/SuperColliderBuild/LFPulseReset/build/CMakeFiles/LFPulseReset.dir
