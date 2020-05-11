@@ -2,8 +2,8 @@ Maths {
 	*ar { |riseDur=0.5, fallDur=0.5, logExp = 0.5, loop = 1, trig = 0|
 		var slewUp, slewDown, riseToFall, oscOut, pulse, trigOut, trigOut2, trigOutSig, sig, frontEdge, freq, dur, backEdge;
 
-		riseDur = riseDur.clip(0.001, 10);//K2A.ar(max(0.001, riseDur));
-		fallDur = fallDur.clip(0.001, 10);//K2A.ar(max(0.001, fallDur));
+		riseDur = riseDur.clip(0.001, 100);//K2A.ar(max(0.001, riseDur));
+		fallDur = fallDur.clip(0.001, 100);//K2A.ar(max(0.001, fallDur));
 
 		dur = riseDur+fallDur;
 		riseToFall = (riseDur/(riseDur+fallDur)).clip(0.01, 0.99);
@@ -13,7 +13,7 @@ Maths {
 
 		pulse = LFPulseReset.ar(freq, 0.999, riseToFall, trig);
 
-		riseToFall = Select.kr(EnvGen.kr(Env([0,0,1], [0.001*dur, 0])), [riseToFall, Latch.kr(riseToFall, A2K.kr(pulse)-0.5)]);
+		riseToFall = Select.kr(EnvGen.kr(Env([0,1], [Latch.kr(riseDur, 1), 0])), [riseToFall, Latch.kr(riseToFall, A2K.kr(pulse)-0.5)]);
 
 		slewUp = freq/riseToFall;
 		slewDown = freq/(1-riseToFall);
