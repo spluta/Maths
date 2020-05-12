@@ -5,7 +5,15 @@ categories::  UGens>Generators
 Description::
 Creates a logarithmic to exponential curve function that can be triggered or can oscillate. The function starts at 0, goes to 1, and returns to 0 on each iteration or loop.
 
-The UGen outputs a 2 channel signal. Channel[0] is function and Channel[1] is the trigger at the front edge of the function.
+Maths will also slew and shape an incoming signal.
+
+The UGen outputs a 3 channel signal:
+
+Channel[0] is the audio rate function.
+
+Channel[1] is the audio-rate trigger at the front edge of the function (End of Cycle - EOC, but really here the front end of the cylce).
+
+Channel[2] is the end-of-rise (EOR) trigger.
 
 Audio Rate Only!
 
@@ -26,18 +34,25 @@ argument::logExp
 
 argument::loop
 
-If 1, the function loops. If 0, the function does not loop.
+If 1, the function loops. If 0, the function does not loop. Default is 1.
 
 argument::trig
 
 An input trigger serves two functions: it both triggers the function loop to start over, if the function is looping, and will trigger the function to happen once if it is not looping.
 
+argument::internalExternal
+
+0 is normal operation, using internal signals to create output. 1 switches to the external signal at 'sig2Slew' as the source for smoothing.
+
+argument::sig2Slew
+
+An incoming signal that will be clipped to between 0 and 1 and output a signal between 0 and 1, with riseDur and fallDur controlling the Slew of the signal and the signal shaped to logarithmic or exponential curves.
 
 Examples::
 
 MouseX and MouseY control the rise and fall durations of the function. MouseButton triggers the function to start over:
 code::
-a = {LFTri.ar(100+(1000*Maths.ar(MouseX.kr, MouseY.kr, 0.2, 1, MouseButton.kr(lag:0.001))[0]), 0, 0.1)}.play //notice how I am taking the [0]th channel of the Maths and ignoring the [1]st channel.
+a = {LFTri.ar(100+(1000*Maths.ar(MouseX.kr, MouseY.kr, 0.2, 1, MouseButton.kr(lag:0.001))[0]), 0, 0.1)}.play //notice how I am taking the [0]th channel of the Maths and ignoring the other outputs
 ::
 
 The same thing but with no looping, just MouseButton triggers:
@@ -47,18 +62,37 @@ a = {LFTri.ar(100+(1000*Maths.ar(MouseX.kr, MouseY.kr, 0.2, 0, MouseButton.kr(la
 
 Changing the shape of the envelope from Log to Exponential has significant influence over the sound:
 code::
-a = {LFTri.ar(100+(1000*Maths.ar(MouseX.kr, MouseY.kr, SinOsc.ar(0.2, 0).range(0,1), 1, MouseButton.kr(lag:0.001))[0]), 0, 0.1)}.play //notice how I am taking the [0]th channel of the Maths and ignoring the [1]st channel.
+a = {LFTri.ar(100+(1000*Maths.ar(MouseX.kr, MouseY.kr, SinOsc.ar(0.2, 0).range(0,1), 1, MouseButton.kr(lag:0.001))[0]), 0, 0.1)}.play
 ::
 
 A Maths can also be used to trigger a Maths. Here we have a complex percussion sound made by using the trigger out of one Maths to trigger a second, nonlooping Maths.
 code::
 (
 a = {
-	var sig, mathsA, trig, mathsB, sig1, noise;
+	var sig, mathsA, eof, mathsB, sig1, noise;
 
-	#mathsA, trig = Maths.ar(0.001, MouseX.kr, 0.9, 1, MouseButton.kr(0,1, 0.001));  //using both the function and the trigger outputs
+	#mathsA, eof = Maths.ar(0.001, MouseX.kr, 0.9, 1, MouseButton.kr(0,1, 0.001));  //using both the function and the trigger outputs
 	sig = LFTri.ar(100+(2000*mathsA), 0, 0.1);
-	mathsB = Maths.ar(0.001, min(0.1, MouseX.kr), 0.9, 0, trig)[0];
+	mathsB = Maths.ar(0.001, min(0.1, MouseX.kr), 0.9, 0, eof)[0];
+	noise = mathsB*WhiteNoise.ar(0.1);
+
+	sig1 = LFTri.ar(20+(mathsB*1400), 0, 0.1);
+
+	(sig+sig1+noise).dup
+}.play
+
+)
+::
+
+The same idea, but using the EOR.
+code::
+(
+a = {
+	var sig, mathsA, eof, eor, mathsB, sig1, noise;
+
+	#mathsA, eof, eor = Maths.ar(0.5, MouseX.kr, 0.5, 1, MouseButton.kr(0,1, 0.001));  //using both the function and the trigger outputs
+	sig = LFTri.ar(100+(2000*mathsA), 0, 0.1);
+	mathsB = Maths.ar(0.001, min(0.1, MouseX.kr), 0.9, 0, eor)[0];
 	noise = mathsB*WhiteNoise.ar(0.1);
 
 	sig1 = LFTri.ar(20+(mathsB*1400), 0, 0.1);
@@ -73,4 +107,25 @@ Rise and Fall can each be up to 100 seconds:
 code::
 a = {LFTri.ar(50+(1000*Maths.ar(10, 10, 0.5, 1)[0]), 0, 0.1)}.play //notice how I am taking the [0]th channel of the Maths and ignoring the [1]st channel.
 ::
+
+An external Audio or Control rate signal can be used is an input to the Slew inside Maths:
+
+code::
+a = {LFTri.ar(100+(1000*Maths.ar(MouseX.kr, MouseY.kr, 0.2, 1, 0, 1, LFPulse.ar(2))[0]), 0, 0.1)}.play
+::
+
+This is a fun way to make different shaped noise curves:
+
+code::
+(
+a = {
+	var dur;
+
+	dur = 0.1;
+
+	LFTri.ar(100+(1000*Maths.ar(dur/2, dur/2, 0.99, 1, 0, 1, LFNoise0.ar(1/dur).range(0,1))[0]), 0, 0.1)
+}.play
+)
+::
+
 
