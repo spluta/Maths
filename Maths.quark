@@ -1,0 +1,9 @@
+(
+  name: "Maths",
+  summary: "A SuperCollider emulation of the popular Maths Eurorack module.",
+  version: "1.0.0",
+  schelp: "Maths",
+  dependencies: ["LFPulseReset"],
+  license: "GPL",
+  copyright: "Sam Pluta, 2020"
+)
