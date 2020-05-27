@@ -1,0 +1,47 @@
+declare name        "MathsLib";
+declare version     "1.1";
+declare author      "Sam Pluta";
+declare license     "BSD";
+declare copyright   "(c)Sam Pluta 2020";
+
+import("stdfaust.lib");
+
+
+
+MathsC(riseDur, fallDur, logExp, onOff) = 1-sigOutInv:calcLogExp, endTrig, topTrig: _,_,_
+with {
+  dur = riseDur+fallDur;
+  freq = 1/dur;
+  peakPoint = riseDur/dur;
+  sigOutInv = selectIt(lf_sawposTrig-peakPoint);
+  endTrig = 1-(sigOutInv):ba.impulsify*onOffB;
+  topTrig = 1-endTrig;
+  lf_sawposTrig = ma.frac*(onOffB) ~ +(freq'/ma.SR);
+  selectIt(val) = ba.if(val<0, (val/peakPoint):abs, val/(1-peakPoint));
+
+  onOffB = ba.if(onOff>0, 1, 0); //did u just fuck this up?
+
+  expy(x) = x^10;//((exp(x)-1)/1.71828)^10;
+  loggy(x) = 1-expy(1-x);
+  calcLogExp(x) = ba.if(logExp<0.5, (loggy(x),x):si.interpolate(min(1,logExp*2)), (x,expy(x)):si.interpolate(max(0,logExp*2-1)));
+  //calcLogExp(x) = ba.if(logExp<0.5, (ma.cbrt(x),x:si.interpolate(min(1,logExp*2))), (x,x*x*x*x:si.interpolate(max(0,logExp*2-1))));
+};
+
+MathsT(riseDur, fallDur, logExp, trigger) = 1-sigOutInv:calcLogExp, endTrig, topTrig: _,_,_
+with {
+  dur = riseDur+fallDur;
+  freq = 1/dur;
+  peakPoint = riseDur/dur;
+  sigOutInv = selectIt(lf_sawposTrig-peakPoint);
+  endTrig = 1-sigOutInv:ba.impulsify;
+  topTrig = 1-endTrig;
+  sigChoice(in) = ba.if(in>1, 1, in);//in,1:ba.selectn(2, float(in>1));
+  lf_sawposTrig = (sigChoice*(1-trigger)) ~ +(freq'/ma.SR);
+  //fracPart(x) = x - floor(x);
+  //lf_sawposTrig = (+(1):sigChoice: fracPart*(1-trigger) ) ~ +(freq/ma.SR);
+  selectIt(val) = ba.if(val<0, (val/peakPoint):abs, val/(1-peakPoint));
+  expy(x) = ((exp(x)-1)/1.71828)^10;
+  loggy(x) = 1-expy(1-x);
+  calcLogExp(x) = ba.if(logExp<0.5, (loggy(x),x):si.interpolate(min(1,logExp*2)), (x,expy(x)):si.interpolate(max(0,logExp*2-1)));
+  //calcLogExp(x) = ba.if(logExp<0.5, (ma.cbrt(x),x:si.interpolate(min(1,logExp*2))), (x,x*x*x*x:si.interpolate(max(0,logExp*2-1))));
+};
