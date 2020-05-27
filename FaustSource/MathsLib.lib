@@ -8,40 +8,60 @@ import("stdfaust.lib");
 
 
 
-MathsC(riseDur, fallDur, logExp, onOff) = 1-sigOutInv:calcLogExp, endTrig, topTrig: _,_,_
+MathsC(riseDur, fallDur, logExp, onOff) = 1-sigOutInv, logExp:calcLogExp, endTrig, topTrig: _,_,_
 with {
-  dur = riseDur+fallDur;
-  freq = 1/dur;
-  peakPoint = riseDur/dur;
-  sigOutInv = selectIt(lf_sawposTrig-peakPoint);
-  endTrig = 1-(sigOutInv):ba.impulsify*onOffB;
-  topTrig = 1-endTrig;
+  riseDurB = max(0.001, riseDur);
+  fallDurB = max(0.001, fallDur);
+  dur = riseDurB+fallDurB;
+  freq = (1/dur);
+
+  peakHold = peakPoint:ba.sAndH(endTrig);//float(float(endTrig>0)+float(endTrig'<=0)==2.0)
+  peakPoint = riseDurB/dur;
+
+  sigOutInv = selectIt(lf_sawposTrig-peakHold);
+  impulse = 1-1';
+  endTrig = myTrigger(impulse + 0.5*ma.diffn(lf_sawposTrig*2-1)*onOffB)+myTrigger(onOffB);//1-sigOutInv:ba.impulsify*onOffB;
+
+  topTrig = myTrigger(lf_sawposTrig-peakHold);
+
   lf_sawposTrig = ma.frac*(onOffB) ~ +(freq'/ma.SR);
-  selectIt(val) = ba.if(val<0, (val/peakPoint):abs, val/(1-peakPoint));
+  selectIt(val) = ba.if(val<0, (val/peakHold):abs, val/(1-peakHold));
 
-  onOffB = ba.if(onOff>0, 1, 0); //did u just fuck this up?
-
-  expy(x) = x^10;//((exp(x)-1)/1.71828)^10;
-  loggy(x) = 1-expy(1-x);
-  calcLogExp(x) = ba.if(logExp<0.5, (loggy(x),x):si.interpolate(min(1,logExp*2)), (x,expy(x)):si.interpolate(max(0,logExp*2-1)));
-  //calcLogExp(x) = ba.if(logExp<0.5, (ma.cbrt(x),x:si.interpolate(min(1,logExp*2))), (x,x*x*x*x:si.interpolate(max(0,logExp*2-1))));
+  onOffB = ba.if(onOff>0, 1, 0);
 };
 
-MathsT(riseDur, fallDur, logExp, trigger) = 1-sigOutInv:calcLogExp, endTrig, topTrig: _,_,_
+myTrigger(x) = float(float(x>0)+float(x'<=0)==2.0);
+
+calcLogExp(x, logExp) = ba.if(logExp<0.5, (loggy(x),x):si.interpolate(min(1,logExp*2)), (x,expy(x)):si.interpolate(max(0,logExp*2-1)))
+with{
+  expy(x) = x^10;
+  loggy(x) = 1-expy(1-x);
+};
+
+myImp(freq, onOff) = sigOut
+  with {
+    lf_saw = ma.frac*(onOffB) ~ +(freq'/ma.SR);
+    onOffB = ba.if(onOff>0, 1, 0);
+  sigOut = hf;//ba.if(freq>50, hf, lf);
+  impulse = 1-1';
+  hf = impulse + 0.5*ma.diffn(lf_saw*2-1);
+  lf = ba.if(max(0,os.lf_sawpos(freq)-0.001)==0, 1, 0);
+};
+
+MathsT(riseDur, fallDur, logExp, trigger) = 1-sigOutInv:si.smooth(0.1), logExp:calcLogExp, endTrig, topTrig: _,_,_
 with {
   dur = riseDur+fallDur;
+  trighold(x) = x:ba.sAndH(float(float(trigger>0)+float(trigger'<=0)==2.0));
   freq = 1/dur;
-  peakPoint = riseDur/dur;
+  peakPoint = (riseDur/dur):trighold;
+
   sigOutInv = selectIt(lf_sawposTrig-peakPoint);
   endTrig = 1-sigOutInv:ba.impulsify;
-  topTrig = 1-endTrig;
+  topTrig = myTrigger(lf_sawposTrig-peakPoint);
+
   sigChoice(in) = ba.if(in>1, 1, in);//in,1:ba.selectn(2, float(in>1));
   lf_sawposTrig = (sigChoice*(1-trigger)) ~ +(freq'/ma.SR);
-  //fracPart(x) = x - floor(x);
-  //lf_sawposTrig = (+(1):sigChoice: fracPart*(1-trigger) ) ~ +(freq/ma.SR);
+
   selectIt(val) = ba.if(val<0, (val/peakPoint):abs, val/(1-peakPoint));
-  expy(x) = ((exp(x)-1)/1.71828)^10;
-  loggy(x) = 1-expy(1-x);
-  calcLogExp(x) = ba.if(logExp<0.5, (loggy(x),x):si.interpolate(min(1,logExp*2)), (x,expy(x)):si.interpolate(max(0,logExp*2-1)));
-  //calcLogExp(x) = ba.if(logExp<0.5, (ma.cbrt(x),x:si.interpolate(min(1,logExp*2))), (x,x*x*x*x:si.interpolate(max(0,logExp*2-1))));
+
 };
