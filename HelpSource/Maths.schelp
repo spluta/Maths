@@ -1,10 +1,12 @@
-class:: MathsOG
+class:: Maths
 summary:: Function Generator
-related:: Maths
+related:: MathsC, MathsT, MathsOG
 categories::  UGens>Generators
 
 Description::
 The full version of the Maths written in Faust. Creates a logarithmic to exponential curve function that can be triggered or can oscillate. The function starts at 0, goes to 1, and returns to 0 on each iteration or loop.
+
+See MathsC and MathsT for the cycling and triggered versions of the Maths.
 
 The UGen outputs a 3 channel signals:
 
