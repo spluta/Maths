@@ -1,9 +1,5 @@
 # Maths
 
-A SuperCollider emulation of the popular Eurorack module.
+An SC implementation of the MakeNoise Maths EuroRack module. Creates a logarithmic to exponential curve function that can be triggered or can oscillate. The function starts at 0, goes to 1, and returns to 0 on each iteration or loop.
 
-There are two versions. MathsOG is the original gangster, coded in SC. Maths, MathsC, and MathsT are written in Faust.
-
-MathsOG requires the LFPulseReset UGen. Maths, MathsC, and MathsT are compiled from the Faust binaries.
-
-A compiled Mac version of all plugins is included. The source code is also included and can be compiled for other environments like PD and Max.
+The source code for the no longer used Faust implementation of the UGen is provided and can be compiled for SC, PD, Max, or other environments.

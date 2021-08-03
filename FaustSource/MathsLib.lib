@@ -10,8 +10,8 @@ import("stdfaust.lib");
 
 MathsC(riseDur, fallDur, logExp, onOff) = 1-sigOutInv, logExp:calcLogExp, endTrig, topTrig: _,_,_
 with {
-  riseDurB = max(0.001, riseDur);
-  fallDurB = max(0.001, fallDur);
+  riseDurB = max(0.0001, riseDur);
+  fallDurB = max(0.0001, fallDur);
   dur = riseDurB+fallDurB;
   freq = (1/dur);
 

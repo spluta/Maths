@@ -1,12 +1,12 @@
-class:: Maths
+class:: Maths2
 summary:: Function Generator
-related::Maths2
+related::Maths
 categories::  UGens>Generators>Deterministic
 
 Description::
-A Faust implementation of the MakeNoise Maths EuroRack module. Creates a logarithmic to exponential curve function that can be triggered or can oscillate. The function starts at 0, goes to 1, and returns to 0 on each iteration or loop.
+A pure SC implementation of the MakeNoise Maths EuroRack module. Creates a logarithmic to exponential curve function that can be triggered or can oscillate. The function starts at 0, goes to 1, and returns to 0 on each iteration or loop.
 
-For a pure SC implementation of the same algorithm, use Maths2, which is completely interoperable and should give identical output. (Right now the EOC and EOR triggers are not exactly the same - Maths outputs single sample triggers. Maths two correctly outputs PWM oscillators.)
+For a more efficient algorithm, use the Faust implementation - Maths. (Right now the EOC and EOR triggers are not exactly the same - Maths outputs single sample triggers. Maths two correctly outputs PWM oscillators.)
 
 The source code for the Faust implementation of the UGen is provided and can be compiled for SC, PD, Max, or other environments.
 
@@ -14,9 +14,9 @@ The UGen outputs a 3 channel signals:
 
 Channel[0] is the audio rate function.
 
-Channel[1] is a pulse width oscillator at the front edge of the function (Front of Cycle - FOC). The oscillator is 1 while the function is rising and 0 while it is falling or not active. (This is currently a simple trigger in the Maths, and PWM in the Maths2.)
+Channel[1] is a pulse width oscillator at the front edge of the function (Front of Cycle - FOC). The oscillator is 1 while the function is rising and 0 while it is falling or not active.
 
-Channel[2] is the end-of-rise (EOR) pulse width oscillator. It is 1 when the function is falling and 0 when the function is rising or not active. (This is currently a simple trigger in the Maths, and PWM in the Maths2.)
+Channel[2] is the end-of-rise (EOR) pulse width oscillator. It is 1 when the function is falling and 0 when the function is rising or not active.
 
 Audio Rate Only!
 
@@ -49,29 +49,29 @@ An input trigger will trigger the function to happen once if loop is set to 0.
 
 Examples::
 
-Maths outputs 3 signals. The function, FOC and EOR:
+Maths2 outputs 3 signals. The function, FOC and EOR:
 code::
-{Maths.ar(0.05, 0.15, 0.8)}.plot(1)
+{Maths2.ar(0.05, 0.15, 0.8)}.plot(1)
 ::
 
 Both FOC and EOR are 0 when the function is 0:
 code::
-{Maths.ar(0.05, 0.15, 0.8, 0, 1, Impulse.ar(3))}.plot(1)
+{Maths2.ar(0.05, 0.15, 0.8, 0, 1, Impulse.ar(3))}.plot(1)
 ::
 
 MouseX and MouseY control the rise and fall durations of the function. MouseButton triggers the cycle to end. Lifting the MouseButton trigger the cycle to start over:
 code::
-a = {LFTri.ar(100+(1000*Maths.ar(MouseX.kr, MouseY.kr, 0.2, 1-MouseButton.kr(lag:0.001))[0]), 0, 0.1)}.play //notice how I am taking the [0]th channel of the Maths and ignoring the other outputs
+a = {LFTri.ar(100+(1000*Maths2.ar(MouseX.kr, MouseY.kr, 0.2, 1-MouseButton.kr(lag:0.001))[0]), 0, 0.1)}.play //notice how I am taking the [0]th channel of the Maths and ignoring the other outputs
 ::
 
 The same thing but with no looping, just MouseButton triggers:
 code::
-a = {LFTri.ar(100+(1000*Maths.ar(MouseX.kr, MouseY.kr, 0.2, 0, 1, MouseButton.kr(lag:0.001))[0]), 0, 0.1)}.play
+a = {LFTri.ar(100+(1000*Maths2.ar(MouseX.kr, MouseY.kr, 0.2, 0, 1, MouseButton.kr(lag:0.001))[0]), 0, 0.1)}.play
 ::
 
 Changing the shape of the envelope from Log to Exponential has significant influence over the sound:
 code::
-a = {LFTri.ar(100+(1000*Maths.ar(MouseX.kr, MouseY.kr, SinOsc.ar(0.2, 0).range(0,1), 1-MouseButton.kr(lag:0.001))[0]), 0, 0.1)}.play
+a = {LFTri.ar(100+(1000*Maths2.ar(MouseX.kr, MouseY.kr, SinOsc.ar(0.2, 0).range(0,1), 1-MouseButton.kr(lag:0.001))[0]), 0, 0.1)}.play
 ::
 
 A Maths can also be used to trigger a Maths. Here we have a complex percussion sound made by using the trigger out of one Maths to trigger a second, nonlooping Maths.
@@ -80,10 +80,10 @@ code::
 a = {
     var sig, mathsA, foc, mathsB, sig1, noise;
 
-    #mathsA, foc = Maths.ar(0.001, MouseX.kr, 0.9, 1-MouseButton.kr(0,1, 0.001));
+    #mathsA, foc = Maths2.ar(0.001, MouseX.kr, 0.9, 1-MouseButton.kr(0,1, 0.001));
 
     sig = LFTri.ar(100+(2000*mathsA), 0, 0.1);
-    mathsB = Maths.ar(0.001, min(0.1, MouseX.kr), 0.9, 0, 1, foc)[0];
+    mathsB = Maths2.ar(0.001, min(0.1, MouseX.kr), 0.9, 0, 1, foc)[0];
     noise = mathsB*WhiteNoise.ar(0.1);
 
     sig1 = LFTri.ar(20+(mathsB*1400), 0, 0.1);
@@ -99,10 +99,10 @@ code::
 a = {
 	var sig, mathsA, foc, eor, mathsB, sig1, noise;
 
-	#mathsA, foc, eor = Maths.ar(0.5, MouseX.kr, 0.5, 1-MouseButton.kr(0,1, 0.001));
+	#mathsA, foc, eor = Maths2.ar(0.5, MouseX.kr, 0.5, 1-MouseButton.kr(0,1, 0.001));
 
 	sig = LFTri.ar(100+(2000*mathsA), 0, 0.1);
-	mathsB = Maths.ar(0.001, min(0.1, MouseX.kr), 0.9, 0, 1, eor)[0];
+	mathsB = Maths2.ar(0.001, min(0.1, MouseX.kr), 0.9, 0, 1, eor)[0];
 	noise = mathsB*WhiteNoise.ar(0.1);
 
 	sig1 = LFTri.ar(20+(mathsB*1400), 0, 0.1);
@@ -115,13 +115,13 @@ a = {
 
 Rise and Fall can each be up to 600 seconds:
 code::
-a = {LFTri.ar(50+(1000*Maths.ar(10, 10, 0.5, 1)[0]), 0, 0.1)}.play //notice how I am taking the [0]th channel of the Maths and ignoring the [1]st channel.
+a = {LFTri.ar(50+(1000*Maths2.ar(10, 10, 0.5, 1)[0]), 0, 0.1)}.play //notice how I am taking the [0]th channel of the Maths and ignoring the [1]st channel.
 ::
 
 An external Audio or Control rate signal can be used is an input to the Slew inside Maths:
 
 code::
-a = {LFTri.ar(100+(1000*Maths.ar(MouseX.kr, MouseY.kr, 0.2, 1, 0, 1, LFPulse.ar(2))[0]), 0, 0.1)}.play
+a = {LFTri.ar(100+(1000*Maths2.ar(MouseX.kr, MouseY.kr, 0.2, 1, 0, 1, LFPulse.ar(2))[0]), 0, 0.1)}.play
 ::
 
 This is a fun way to make different shaped noise curves:
@@ -133,7 +133,7 @@ a = {
 
 	dur = 0.1;
 
-	LFTri.ar(100+(1000*Maths.ar(dur/2, dur/2, 0.99, 1, 0, 1, LFNoise0.ar(1/dur).range(0,1))[0]), 0, 0.1)
+	LFTri.ar(100+(1000*Maths2.ar(dur/2, dur/2, 0.99, 1, 0, 1, LFNoise0.ar(1/dur).range(0,1))[0]), 0, 0.1)
 }.play
 )
 ::
