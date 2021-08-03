@@ -1,7 +1,7 @@
 (
   name: "Maths",
   summary: "A SuperCollider emulation of the popular Maths Eurorack module.",
-  version: "1.5.0",
+  version: "1.5.1",
   schelp: "Maths",
   license: "GPL 3 or later",
   copyright: "Sam Pluta, 2020-21"
