@@ -26,10 +26,6 @@ Maths2 {
 		var needsMaths = pluggedIsSignal or: { plugged < 1 };
 		var needsMaths2 = pluggedIsSignal or: { plugged >= 1 };
 
-		pluggedIsSignal.postln;
-		needsMaths.postln;
-
-		pluggedIsSignal.poll;
 		if(needsMaths){
 			phasor = phasor.linlin(-1,1,width.neg, 1-width);
 			maths = phasor.bilin(0, width.neg, 1-width, 0, -1, 1);
@@ -52,7 +48,7 @@ Maths2 {
 			if(plugged > 0) { maths = maths2 };
 		};
 
-		isExp = (linExp>0.5);
+		isExp = (linExp>0.5).asInteger;
 		interp = Select.kr(isExp, [linExp.linlin(0, 0.5, 1, 0) , linExp.linlin(0.5, 1, 0, 1)]);
 		maths = Select.ar(isExp, [ maths-1, maths]);
 		maths = (maths**8*interp)+(maths*(1-interp));
