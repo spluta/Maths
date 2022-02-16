@@ -35,10 +35,10 @@ Maths2 {
 
 		if(needsMaths2){
 			phasor2 = Phasor.ar(inTrig, 2*freq/sampleRate, -1, 1, -1);
+			postEnv2 = SetResetFF.ar(Delay1.ar(inTrig), Trig1.ar(0.5-phasor2, 1/sampleRate));
 			phasor2 = phasor2.linlin(-1,1,width.neg, 1-width);
 			maths2 = phasor2.bilin(0, width.neg, 1-width, 0, -1, 1);
 			maths2 = 1-(maths2.abs);
-			postEnv2 = SetResetFF.ar(Delay1.ar(inTrig), Trig1.ar(0.5-phasor2, 1/sampleRate));
 			maths2 = maths2*postEnv2;
 		};
 
