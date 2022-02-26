@@ -41,7 +41,7 @@ If 1, the function loops. If 0, the function does not loop. The cycle will start
 
 argument::plugged
 
-0 is normal operation, using internal cycle to create the input. When "plugged" it only reactions to tiggers coming from the trig input.
+0 is normal operation, using internal cycle to create the input. When "plugged" it only reactions to triggers coming from the trig input.
 
 argument::trig
 
